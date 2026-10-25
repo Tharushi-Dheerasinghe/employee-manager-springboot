@@ -23,10 +23,7 @@ public class EmployeeController {
  public EmployeeController(EmployeeService service) {
  this.service = service;
  }
- @ModelAttribute("courses")
- public List<String> courses() {
- return COURSES;
- }
+
  @GetMapping("/")
  public String home() {
  return "redirect:/employees";
@@ -36,59 +33,63 @@ public class EmployeeController {
  public String list(Model model) {
  model.addAttribute("employee", new Employee());
  model.addAttribute("employees", service.findAll());
-    return "students";
+ model.addAttribute("courses", COURSES);
+ return "employees";
  }
- // CREATE: save a new student
- @PostMapping("/students")
- public String create(@Valid @ModelAttribute("student") Employee student,
+ // CREATE: save a new employee
+ @PostMapping("/employees")
+ public String create(@Valid @ModelAttribute("employee") Employee employee,
  BindingResult result, Model model,
  RedirectAttributes redirect) {
- if (service.emailExists(student.getEmail(), null)) {
+ if (service.emailExists(employee.getEmail(), null)) {
  result.rejectValue("email", "duplicate", "This email is already registered");
  }
  if (result.hasErrors()) {
- model.addAttribute("students", service.findAll());
- return "students";
+ model.addAttribute("employees", service.findAll());
+ model.addAttribute("courses", COURSES);
+ return "employees";
  }
- service.save(student);
- redirect.addFlashAttribute("success", "Student added successfully.");
- return "redirect:/students";
+ service.save(employee);
+ redirect.addFlashAttribute("success", "Employee added successfully.");
+ return "redirect:/employees";
  }
  // UPDATE (step 1): show the edit form filled with existing data
- @GetMapping("/students/{id}/edit")
+ @GetMapping("/employees/{id}/edit")
  public String editForm(@PathVariable Long id, Model model, RedirectAttributes redirect) {
  return service.findById(id)
  .map(s -> {
- model.addAttribute("student", s);
- return "edit-student";
+ model.addAttribute("employee", s);
+ model.addAttribute("courses", COURSES);
+ return "edit-employee";
  })
  .orElseGet(() -> {
- redirect.addFlashAttribute("error", "Student not found.");
- return "redirect:/students";
+ redirect.addFlashAttribute("error", "Employee not found.");
+ return "redirect:/employees";
  });
  }
  // UPDATE (step 2): save the changes
- @PostMapping("/students/{id}/update")
+ @PostMapping("/employees/{id}/update")
  public String update(@PathVariable Long id,
- @Valid @ModelAttribute("student") Employee student,
- BindingResult result, RedirectAttributes redirect) {
- student.setId(id);
- if (service.emailExists(student.getEmail(), id)) {
+ @Valid @ModelAttribute("employee") Employee employee,
+ BindingResult result, Model model, RedirectAttributes redirect) {
+ employee.setId(id);
+ if (service.emailExists(employee.getEmail(), id)) {
  result.rejectValue("email", "duplicate", "This email is already registered");
  }
  if (result.hasErrors()) {
- return "edit-student";
+ model.addAttribute("employee", employee);
+ model.addAttribute("courses", COURSES);
+ return "edit-employee";
  }
- service.save(student);
- redirect.addFlashAttribute("success", "Student updated successfully.");
- return "redirect:/students";
+ service.save(employee);
+ redirect.addFlashAttribute("success", "Employee updated successfully.");
+ return "redirect:/employees";
  }
  // DELETE
- @PostMapping("/students/{id}/delete")
+ @PostMapping("/employees/{id}/delete")
  public String delete(@PathVariable Long id, RedirectAttributes redirect) {
  service.deleteById(id);
- redirect.addFlashAttribute("success", "Student deleted successfully.");
- return "redirect:/students";
+ redirect.addFlashAttribute("success", "Employee deleted successfully.");
+ return "redirect:/employees";
  }
-
 }
